@@ -31,5 +31,12 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     wearApp project(':wear')
-    implementation 'com.google.android.gms:play-services-wearable:+'
+    implementation 'com.google.android.gms:play-services-wearable:16.0.1'
+
+
+    implementation "com.squareup.retrofit2:retrofit:$rootProject.retrofit_version"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:$rootProject.retrofit_version"
+    implementation "com.squareup.retrofit2:converter-gson:$rootProject.retrofit_version"
+    implementation "com.squareup.okhttp3:logging-interceptor:$rootProject.okhttp_version"
+
 }
