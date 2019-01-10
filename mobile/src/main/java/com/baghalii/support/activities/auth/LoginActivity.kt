@@ -1,5 +1,6 @@
 package com.baghalii.support.activities.auth
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
@@ -10,6 +11,11 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import com.baghalii.support.R
 import com.baghalii.support.extensions.showHideFade
+import com.baghalii.support.extensions.snack
+import com.baghalii.support.network.Webservice
+import com.baghalii.support.utilities.App
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_login.*
 
 /**
@@ -35,10 +41,10 @@ class LoginActivity : AppCompatActivity() {
 
     private fun attemptLogin() {
 
-        email.error = null
+        userName.error = null
         password.error = null
 
-        val userName = email.text.toString()
+        val userNameStr = userName.text.toString()
         val passwordStr = password.text.toString()
 
         var cancel = false
@@ -50,13 +56,13 @@ class LoginActivity : AppCompatActivity() {
             cancel = true
         }
 
-        if (TextUtils.isEmpty(userName)) {
-            email.error = getString(R.string.error_field_required)
-            focusView = email
+        if (TextUtils.isEmpty(userNameStr)) {
+            userName.error = getString(R.string.error_field_required)
+            focusView = userName
             cancel = true
-        } else if (!isUserNameValid(userName)) {
-            email.error = getString(R.string.error_invalid_email)
-            focusView = email
+        } else if (!isUserNameValid(userNameStr)) {
+            userName.error = getString(R.string.error_invalid_email)
+            focusView = userName
             cancel = true
         }
 
@@ -64,13 +70,27 @@ class LoginActivity : AppCompatActivity() {
             focusView?.requestFocus()
         } else {
             showProgress(true)
-            performLogin(userName, passwordStr)
+            performLogin(userNameStr, passwordStr)
         }
     }
 
-    private fun performLogin(userName: String, passwordStr: String) {
-
-
+    @SuppressLint("CheckResult")
+    private fun performLogin(userNameStr: String, passwordStr: String) {
+        Webservice.create().login(LoginPostJsonModel(userNameStr, passwordStr))
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(
+                { result ->
+                    App.prefs.accessToken = result.token
+                    App.prefs.isLoggedIn = true
+                },
+                { error ->
+                    snack(error.message!!, buttonTxt = R.string.retry,
+                        action = View.OnClickListener {
+                            performLogin(userNameStr, passwordStr)
+                        })
+                }
+            )
     }
 
     private fun isUserNameValid(userName: String): Boolean {
